@@ -54,10 +54,46 @@ mon_kerninfo(int argc, char **argv, struct Trapframe *tf)
 	return 0;
 }
 
+static inline uint32_t
+get_by_offset(uint32_t ebp, uint32_t offset)
+{
+	return *((unsigned int*)ebp + offset);
+}
+
+/* 
+eip = (ebp + 4) 
+*/
+static inline uint32_t
+get_eip(uint32_t ebp)
+{
+	return get_by_offset(ebp, 1);
+}
+
+static inline uint32_t
+get_next_ebp(uint32_t ebp)
+{
+	return *((unsigned int*)ebp);
+}
+
 int
 mon_backtrace(int argc, char **argv, struct Trapframe *tf)
 {
 	// Your code here.
+	cprintf("Stack backtrace:\n");
+	uint32_t ebp = read_ebp();
+	uint32_t eip = 0;
+	struct Eipdebuginfo eip_info;
+	while(ebp){
+		eip = get_eip(ebp);
+		cprintf("  ebp %08x  eip %08x  args", ebp, eip);
+		for(int i=2;i<7;++i){
+			cprintf(" %08x", get_by_offset(ebp, i));
+		}
+		cprintf("\n");
+		debuginfo_eip(eip, &eip_info);
+		cprintf("\t%s:%d: %.*s+%d\n", eip_info.eip_file, eip_info.eip_line, eip_info.eip_fn_namelen, eip_info.eip_fn_name, eip-eip_info.eip_fn_addr);
+		ebp = get_next_ebp(ebp);
+	}
 	return 0;
 }
 
