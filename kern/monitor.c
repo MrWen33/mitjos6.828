@@ -86,7 +86,7 @@ mon_lifegame(int argc, char **argv, struct Trapframe *tf)
 	for(i=0;i<100;i++){
 		// srand(time(NULL));
 		// if (rand()%100 <50)
-			status[i] == 1;
+			status[i] = 1;
 	}
 	
 	/* 逻辑与渲染循环 */
