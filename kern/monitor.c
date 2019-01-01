@@ -64,9 +64,30 @@ int neighbors(int* status, int location){
 		return status[8]+status[19]+status[18];
 	if(location == 99)
 		return status[98]+status[89]+status[88];
-	int x = location / 10;
-	int y = location % 10;
-	return status[x*10+y-1]+status[x*10+y+1]+status[(x-1)*10+y]+status[(x+1)*10+y];
+	int x = location % 10;
+	int y = location / 10;
+	int top = location - 10;
+	int bottom = location + 10;
+	int left = location - 1;
+	int right = location + 1;
+	int lefttop = top -1;
+	int righttop = top + 1;
+	int leftbottom = bottom -1;
+	int rightbottom = bottom + 1;
+	if(x == 0){
+		return top + bottom + right + leftbottom + rightbottom;
+	}
+	if(x == 9){
+		return top + lefttop + righttop + left + right;
+	}
+	if(y == 0){
+		return top + right + righttop + rightbottom + bottom;
+	}
+	if(y == 9){
+		return left + lefttop + leftbottom + bottom + top;
+	}
+	
+	return left + bottom + right + top + lefttop + leftbottom + righttop + rightbottom;
 	
 }
 
