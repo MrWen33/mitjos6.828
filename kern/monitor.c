@@ -55,25 +55,25 @@ mon_kerninfo(int argc, char **argv, struct Trapframe *tf)
 	return 0;
 }
 
-int neighbors(int* status, int location){	
-	if(location == 0)
-		return status[1]+status[10]+status[11];
-	if(location == 90)
-		return status[80]+status[81]+status[91];
-	if(location == 9)
-		return status[8]+status[19]+status[18];
-	if(location == 99)
-		return status[98]+status[89]+status[88];
-	int x = location % 10;
-	int y = location / 10;
-	int top = status[location - 10];
-	int bottom = status[location + 10];
+int neighbors(int* status, int location, int line){	
+	int x = location % line;
+	int y = location / line;
+	int top = status[location - line];
+	int bottom = status[location + line];
 	int left = status[location - 1];
 	int right = status[location + 1];
-	int lefttop = status[top -1];
-	int righttop = status[top + 1];
-	int leftbottom = status[bottom -1];
-	int rightbottom = status[bottom + 1];
+	int lefttop = status[location - line -1];
+	int righttop = status[location - line + 1];
+	int leftbottom = status[location + line -1];
+	int rightbottom = status[location + line + 1];
+	if(location == 0)
+		return right + bottom + rightbottom;
+	if(location == line - 1)
+		return left + bottom + leftbottom;
+	if(location == line*line - line)
+		return top + righttop + right;
+	if(location == line*line-1)
+		return left + top + lefttop;
 	if(x == 0){
 		return top + bottom + right + leftbottom + rightbottom;
 	}
@@ -86,42 +86,45 @@ int neighbors(int* status, int location){
 	if(y == 9){
 		return left + lefttop + leftbottom + bottom + top;
 	}
-	
+
 	return left + bottom + right + top + lefttop + leftbottom + righttop + rightbottom;
-	
 }
 
 
 int 
 mon_lifegame(int argc, char **argv, struct Trapframe *tf)
 {
-	int status[100];/* 表示游戏状态.方格10x10 */
-	char screen_buf[128];/* 屏幕缓冲区字符串 */
+	int line = 10;
+	int status[line*line];/* 表示游戏状态.方格10x10 */
+	int new_status[line*line];
+	char screen_buf[256];/* 屏幕缓冲区字符串 */
 	char reset[32];/* 复位字符串 */
-	int i=10;
+	int i=line;
 	while(i--){
 		strcat(reset, "\r\b\r");
 	}
 	/* TODO:初始化游戏状态 */
 	memset(status, 0, sizeof(status));
-	for(i=0;i<100;i++){
-		// srand(time(NULL));
-		// if (rand()%100 <50)
-			status[i] = 1;
-	}
+
+	for(i=0;i<line*line;i++){
+		status[i] = 0;
+	}	
 	
+	for(i=5*line+2;i<6*line-2;i++) // 0 1 2
+		status[i]=1;
+
 	/* 逻辑与渲染循环 */
 	for(;;){
 		/* 将游戏状态转换为字符串 */
 		memset(screen_buf, 0, sizeof(screen_buf));
 		int x;
 		int y;
-		for(y=0;y<10;++y){
-			for(x=0;x<10;++x){
-				if(status[x+y*10]){
-					strcat(screen_buf, "0");
-				}else{
+		for(y=0;y<line;++y){
+			for(x=0;x<line;++x){
+				if(status[x+y*line]){
 					strcat(screen_buf, "1");
+				}else{
+					strcat(screen_buf, "0");
 				}
 			}
 			strcat(screen_buf, "\n");
@@ -132,21 +135,25 @@ mon_lifegame(int argc, char **argv, struct Trapframe *tf)
 
 		/* TODO:更新游戏状态 */
 		int i = 0;
-		for(i=0;i<100;i++){
-			if(neighbors(status, i) == 2)
-				continue;
-			else if(neighbors(status, i) == 3)
-				status[i] = 1;
-			else if(neighbors(status, i) > 3)
-				status[i] = 0;
+		for(i=0;i<line*line;i++){
+			if(neighbors(status, i, line) == 2)
+				new_status[i] = status[i];
+			else if(neighbors(status, i, line) == 3)
+				new_status[i] = 1;
+			else if(neighbors(status, i, line) > 3)
+				new_status[i] = 0;
+			else
+				new_status[i] = 0;
 		}
 		/* TODO:输入Ctrl+C时退出游戏 */
 
+		for(i=0;i<line*line;i++)		
+			status[i] = new_status[i];
 
 		/* 死循环模拟睡眠 */
-		int sleep=100000000;
+		int sleep=1000000000;
 		while(sleep--);
-
+		
 		/* 复位光标 */
 		cprintf(reset);
 	}
