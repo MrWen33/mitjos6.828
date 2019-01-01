@@ -24,6 +24,7 @@ struct Command {
 static struct Command commands[] = {
 	{ "help", "Display this list of commands", mon_help },
 	{ "kerninfo", "Display information about the kernel", mon_kerninfo },
+	{ "lifegame", "LifeGame demo", mon_lifegame}
 };
 
 /***** Implementations of basic kernel monitor commands *****/
@@ -51,6 +52,54 @@ mon_kerninfo(int argc, char **argv, struct Trapframe *tf)
 	cprintf("  end    %08x (virt)  %08x (phys)\n", end, end - KERNBASE);
 	cprintf("Kernel executable memory footprint: %dKB\n",
 		ROUNDUP(end - entry, 1024) / 1024);
+	return 0;
+}
+
+int 
+mon_lifegame(int argc, char **argv, struct Trapframe *tf)
+{
+	int game_status[100];/* 表示游戏状态.方格10x10 */
+	char screen_buf[128];/* 屏幕缓冲区字符串 */
+	char reset[32];/* 复位字符串 */
+	int i=10;
+	while(i--){
+		strcat(reset, "\r\b\r");
+	}
+	/* TODO:初始化游戏状态 */
+	memset(game_status, 0, sizeof(game_status));
+	
+	/* 逻辑与渲染循环 */
+	for(;;){
+		/* 将游戏状态转换为字符串 */
+		memset(screen_buf, 0, sizeof(screen_buf));
+		int x;
+		int y;
+		for(y=0;y<10;++y){
+			for(x=0;x<10;++x){
+				if(game_status[x+y*10]){
+					strcat(screen_buf, "0");
+				}else{
+					strcat(screen_buf, "1");
+				}
+			}
+			strcat(screen_buf, "\n");
+		}
+
+		/* 打印游戏状态 */
+		cprintf(screen_buf);
+
+		/* TODO:更新游戏状态 */
+
+		/* TODO:输入Ctrl+C时退出游戏 */
+
+		/* 死循环模拟睡眠 */
+		int sleep=100000000;
+		while(sleep--);
+
+		/* 复位光标 */
+		cprintf(reset);
+	}
+	
 	return 0;
 }
 
