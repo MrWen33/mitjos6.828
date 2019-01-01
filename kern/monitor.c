@@ -115,9 +115,9 @@ mon_lifegame(int argc, char **argv, struct Trapframe *tf)
 			if(neighbors(status, i) == 2)
 				continue;
 			else if(neighbors(status, i) == 3)
-				status[i] == 1;
+				status[i] = 1;
 			else if(neighbors(status, i) > 3)
-				status[i] == 0;
+				status[i] = 0;
 		}
 		/* TODO:输入Ctrl+C时退出游戏 */
 
