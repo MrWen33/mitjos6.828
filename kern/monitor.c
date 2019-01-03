@@ -56,8 +56,6 @@ mon_kerninfo(int argc, char **argv, struct Trapframe *tf)
 }
 
 int neighbors(int* status, int location, int line){	
-	int x = location % line;
-	int y = location / line;
 	int top = status[location - line];
 	int bottom = status[location + line];
 	int left = status[location - 1];
@@ -74,16 +72,16 @@ int neighbors(int* status, int location, int line){
 		return top + righttop + right;
 	if(location == line*line-1)
 		return left + top + lefttop;
-	if(x == 0){
+	if(location % line == 0){
 		return top + bottom + right + leftbottom + rightbottom;
 	}
-	if(x == 9){
+	if(location % line == line-1){
 		return top + lefttop + righttop + left + right;
 	}
-	if(y == 0){
+	if(location / line == 0){
 		return top + right + righttop + rightbottom + bottom;
 	}
-	if(y == 9){
+	if(location / line == line - 1){
 		return left + lefttop + leftbottom + bottom + top;
 	}
 
@@ -94,11 +92,11 @@ int neighbors(int* status, int location, int line){
 int 
 mon_lifegame(int argc, char **argv, struct Trapframe *tf)
 {
-	int line = 10;
+	int line = 20;
 	int status[line*line];/* 表示游戏状态.方格10x10 */
 	int new_status[line*line];
 	char screen_buf[256];/* 屏幕缓冲区字符串 */
-	char reset[32];/* 复位字符串 */
+	char reset[3*line+1];/* 复位字符串 */
 	int i=line;
 	while(i--){
 		strcat(reset, "\r\b\r");
@@ -122,9 +120,9 @@ mon_lifegame(int argc, char **argv, struct Trapframe *tf)
 		for(y=0;y<line;++y){
 			for(x=0;x<line;++x){
 				if(status[x+y*line]){
-					strcat(screen_buf, "1");
+					strcat(screen_buf, "+");
 				}else{
-					strcat(screen_buf, "0");
+					strcat(screen_buf, " ");
 				}
 			}
 			strcat(screen_buf, "\n");
