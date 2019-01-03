@@ -202,7 +202,7 @@ mon_lifegame(int argc, char **argv, struct Trapframe *tf)
 		for(y=0;y<line;++y){
 			for(x=0;x<line;++x){
 				if(status[x+y*line]){
-					strcat(screen_buf, "+");
+					strcat(screen_buf, "\333");
 				}else{
 					strcat(screen_buf, " ");
 				}
