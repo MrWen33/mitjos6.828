@@ -55,37 +55,27 @@ mon_kerninfo(int argc, char **argv, struct Trapframe *tf)
 	return 0;
 }
 
-int neighbors(int* status, int location, int line){	
-	int top = status[location - line];
-	int bottom = status[location + line];
-	int left = status[location - 1];
-	int right = status[location + 1];
-	int lefttop = status[location - line -1];
-	int righttop = status[location - line + 1];
-	int leftbottom = status[location + line -1];
-	int rightbottom = status[location + line + 1];
-	if(location == 0)
-		return right + bottom + rightbottom;
-	if(location == line - 1)
-		return left + bottom + leftbottom;
-	if(location == line*line - line)
-		return top + righttop + right;
-	if(location == line*line-1)
-		return left + top + lefttop;
-	if(location % line == 0){
-		return top + bottom + right + leftbottom + rightbottom;
+int get_status(int* status, int x, int y, int line)
+{
+	if(x<0||y<0||x>=line||y>=line){
+		return 0;
 	}
-	if(location % line == line-1){
-		return top + lefttop + righttop + left + right;
-	}
-	if(location / line == 0){
-		return top + right + righttop + rightbottom + bottom;
-	}
-	if(location / line == line - 1){
-		return left + lefttop + leftbottom + bottom + top;
-	}
+	return status[x+y*line];
+}
 
-	return left + bottom + right + top + lefttop + leftbottom + righttop + rightbottom;
+int neighbors(int* status, int location, int line){	
+	int x = location%line;
+	int y = location/line;
+	int dx[] = {0,1,1,1,0,-1,-1,-1};
+	int dy[] = {-1,-1,0,1,1,1,0,-1};
+	int dir = 0;
+	int result = 0;
+	for(;dir<8;++dir){
+		int cx = x+dx[dir];
+		int cy = y+dy[dir];
+		result+=get_status(status, cx, cy, line);
+	}
+	return result;
 }
 
 
@@ -123,6 +113,7 @@ mon_lifegame(int argc, char **argv, struct Trapframe *tf)
 		strcat(reset, "\r\b\r");
 	}
 	/* 逻辑与渲染循环 */
+	int count = 10;
 	for(;;){
 		/* 将游戏状态转换为字符串 */
 		memset(screen_buf, 0, sizeof(screen_buf));
@@ -162,7 +153,9 @@ mon_lifegame(int argc, char **argv, struct Trapframe *tf)
 		/* 死循环模拟睡眠 */
 		int sleep=1000000000;
 		while(sleep--);
-		
+		if(!count--){
+			break;
+		}
 		/* 复位光标 */
 		cprintf(reset);
 	}
