@@ -78,6 +78,7 @@ int neighbors(int* status, int location, int line){
 	return result;
 }
 
+extern int kbd_proc_data();
 
 int 
 mon_lifegame(int argc, char **argv, struct Trapframe *tf)
@@ -146,7 +147,7 @@ mon_lifegame(int argc, char **argv, struct Trapframe *tf)
 				new_status[i] = 0;
 		}
 		/* TODO:输入Ctrl+C时退出游戏 */
-
+		if(kbd_proc_data() == 3){break;}
 		for(i=0;i<line*line;i++)		
 			status[i] = new_status[i];
 
